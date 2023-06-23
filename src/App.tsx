@@ -1,35 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { SyntheticEvent, useEffect, useState } from 'react'
 import './App.css'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [open, setOpen] = useState(true);
+    const [name, setName] = useState('');
+    const [nameError, setNameError] = useState('');
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const handleClose = (_event: SyntheticEvent<{}, Event>, reason: "backdropClick" | "escapeKeyDown") => {
+        if (!reason) {
+            setOpen(false);
+        }
+    };
+
+    function handleDone(_event: SyntheticEvent<{}, Event>): void {
+        if (name) {
+          setOpen(false);
+        } else {
+            setNameError("Please Enter Your Name😇😃");
+        }
+    }
+
+    function handleBackdropClick(event: SyntheticEvent<{}, Event>): boolean {
+        event.stopPropagation();
+        return false;
+    }
+
+    useEffect(() => {
+        if (name) {
+            setOpen(true);
+        }
+    }, []);
+
+    return (
+        <>
+            <div>
+                <Dialog open={open} onClose={handleClose} onBackdropClick={handleBackdropClick}>
+                    <DialogTitle className="text-center">Dialog</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Your Name"
+                            type="email"
+                            fullWidth
+                            variant="standard"
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                        />
+                        <span className="error">{nameError}</span>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button variant="outlined" size="small" color="primary" onClick={handleDone}>Done</Button>
+                    </DialogActions>
+                </Dialog>
+                <h1>{name}</h1>
+            </div>
+        </>
+    )
 }
 
 export default App

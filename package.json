@@ -5,17 +5,23 @@
   "type": "module",
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d deploy",
-    "dev": "vite",
+    "deploy": "gh-pages -d dist",
+    "dev": "vite --force",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.5",
+    "animejs": "^3.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@types/animejs": "^3.1.7",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
