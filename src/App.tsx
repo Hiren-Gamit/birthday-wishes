@@ -1,41 +1,95 @@
-import { SyntheticEvent, useEffect, useState } from 'react'
-import './App.css'
+import { ChangeEventHandler, useEffect, useState } from 'react'
+import './App.sass';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
+import Wishes from './Wishes'
+import ReactPlayer from 'react-player';
+import birthdaySong from './assets/music/birthday-song.mp3'
 
 function App() {
-    const [open, setOpen] = useState(true);
-    const [name, setName] = useState('');
-    const [nameError, setNameError] = useState('');
+    const [appState, setAppState] = useState({
+        dialogIsOpen: true,
+        wishedName: '',
+        hasWishedNameError: false,
+        message: '',
+        audioPlay: false,
+    });
 
-    const handleClose = (_event: SyntheticEvent<{}, Event>, reason: "backdropClick" | "escapeKeyDown") => {
-        if (!reason) {
-            setOpen(false);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            let message = '';
+            if (appState.wishedName && !appState.dialogIsOpen) {
+                const index = Math.floor(Math.random() * Wishes.length);
+                message = Wishes[index];
+                message = message.replace(/wished_name/g, appState.wishedName);
+                setAppState((prevState) => ({ ...prevState, message }));
+            }
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [appState.wishedName, appState.dialogIsOpen]);
+
+    const handleClose = (_event: unknown, reason: 'backdropClick' | 'escapeKeyDown') => {
+        if (reason) {
+            setAppState((prevState) => ({ ...prevState, dialogIsOpen: false }));
         }
     };
 
-    function handleDone(_event: SyntheticEvent<{}, Event>): void {
-        if (name) {
-          setOpen(false);
-        } else {
-            setNameError("Please Enter Your Name😇😃");
+    const makeMessage = () => {
+        let message = '';
+        if (appState.wishedName && appState.dialogIsOpen) {
+            const index = Math.floor(Math.random() * Wishes.length);
+            message = Wishes[index];
+            message = message.replace(/wished_name/g, appState.wishedName);
         }
-    }
+        setAppState((prevState) => ({
+            ...prevState,
+            message,
+            dialogIsOpen: false,
+            audioPlay: true,
+        }));
+    };
 
-    function handleBackdropClick(event: SyntheticEvent<{}, Event>): boolean {
+    const handleDone = (): void => {
+        if (appState.wishedName) {
+            makeMessage();
+        } else {
+            setAppState((prevState) => ({ ...prevState, hasWishedNameError: true }));
+        }
+    };
+
+    const handleOnChange: ChangeEventHandler<HTMLInputElement> = (e): void => {
+        setAppState((prevState) => ({
+            ...prevState,
+            wishedName: e.target.value,
+        }));
+    };
+
+    function handleBackdropClick(event: { stopPropagation: () => void }): boolean {
         event.stopPropagation();
         return false;
     }
 
-    useEffect(() => {
-        if (name) {
-            setOpen(true);
+    const handleKeyUp = (event: { keyCode: number }): void => {
+        if (event.keyCode === 13) {
+            if (appState.dialogIsOpen && appState.wishedName) {
+                makeMessage();
+            } else {
+                setAppState((prevState) => ({
+                    ...prevState,
+                    dialogIsOpen: false,
+                    hasWishedNameError: true,
+                }));
+            }
         }
-    }, []);
+    };
 
     return (
         <>
             <div>
-                <Dialog open={open} onClose={handleClose} onBackdropClick={handleBackdropClick}>
+                <Dialog
+                    open={appState.dialogIsOpen}
+                    onClose={handleClose}
+                    onBackdropClick={handleBackdropClick}
+                >
                     <DialogTitle className="text-center">Dialog</DialogTitle>
                     <DialogContent>
                         <TextField
@@ -46,16 +100,48 @@ function App() {
                             type="email"
                             fullWidth
                             variant="standard"
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
+                            error={appState.hasWishedNameError}
+                            onKeyUp={handleKeyUp}
+                            helperText={appState.hasWishedNameError ? 'Please Enter Your Name😇😃' : ''}
+                            value={appState.wishedName}
+                            onChange={handleOnChange}
                         />
-                        <span className="error">{nameError}</span>
                     </DialogContent>
                     <DialogActions>
-                        <Button variant="outlined" size="small" color="primary" onClick={handleDone}>Done</Button>
+                        <Button variant="outlined" size="small" color="primary" onClick={handleDone}>
+                            Done
+                        </Button>
                     </DialogActions>
                 </Dialog>
-                <h1>{name}</h1>
+                {(appState.wishedName && !appState.dialogIsOpen) ?
+
+                    <div>
+                        <div className="card">
+                            <div className="back"></div>
+                            <div className="front">
+                                <div className="imgset">
+                                    <img width="100%" src="https://1.bp.blogspot.com/-Mgj9-rbs65E/XfMoPSD5gtI/AAAAAAAAURk/NBokE2gSS2cTSJ2em5lZ5hJDuTtRN7UVwCLcBGAsYHQ/s1600/2713997.png" />
+                                </div>
+                            </div>
+                            <div className="text-container">
+                                <p id="head">Happy Birthday!</p>
+                                <h5>From Hiren to You</h5>
+                                <div
+                                    className="birthday-wishes-container"
+                                    dangerouslySetInnerHTML={{ __html: appState.message }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                : ''}
+                <ReactPlayer
+                    url={birthdaySong}
+                    playing={appState.audioPlay}
+                    loop={true}
+                    width={0}
+                    height={0}
+                />
+
             </div>
         </>
     )
